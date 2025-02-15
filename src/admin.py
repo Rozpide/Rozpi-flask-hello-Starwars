@@ -3,6 +3,15 @@ from flask_admin import Admin
 from models import db, User, People, Planet, Favorite
 from flask_admin.contrib.sqla import ModelView
 
+class FavoriteModelView(ModelView):
+    column_list = ('id', 'user.email', 'people.name', 'planet.name')
+    column_labels = {
+        'id': 'ID',
+        'user.email': 'User Email',
+        'people.name': 'Character Name',
+        'planet.name': 'Planet Name'
+    }
+
 def setup_admin(app):
     app.secret_key = os.environ.get('FLASK_APP_KEY', 'sample key')
     app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'

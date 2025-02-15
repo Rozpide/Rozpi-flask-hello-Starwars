@@ -70,6 +70,9 @@ class Favorite(db.Model):
         return {
             "id": self.id,
             "user_id": self.user_id,
+            "user_email": self.user.email,  # Incluir email del usuario
             "people_id": self.people_id,
+            "people_name": self.people.name if self.people else None,  # Incluir nombre del personaje
             "planet_id": self.planet_id,
+            "planet_name": self.planet.name if self.planet else None,  # Incluir nombre del planeta
         }
