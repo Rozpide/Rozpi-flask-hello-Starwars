@@ -71,7 +71,31 @@ def get_user_favorites():
         return jsonify({"msg": "User not found"}), 404
     favorites = Favorite.query.filter_by(user_id=user_id).all()
     return jsonify([favorite.serialize() for favorite in favorites]), 200
+@app.route('/favorites', methods=['POST'])
+def add_favorite():
+    user_id = request.json.get('user_id')
+    people_id = request.json.get('people_id')
+    planet_id = request.json.get('planet_id')
+    
+    if not user_id:
+        return jsonify({"msg": "User ID is required"}), 400
+    
+    favorite = Favorite(user_id=user_id, people_id=people_id, planet_id=planet_id)
+    db.session.add(favorite)
+    db.session.commit()
+    
+    return jsonify(favorite.serialize()), 201
 
+
+@app.route('/favorites/<int:favorite_id>', methods=['DELETE'])
+def delete_favorite(favorite_id):
+    favorite = Favorite.query.get(favorite_id)
+    if not favorite:
+        return jsonify({"msg": "Favorite not found"}), 404
+
+    db.session.delete(favorite)
+    db.session.commit()
+    return jsonify({"msg": "Favorite deleted"}), 200
 
 #-----------------------------------------------------------
 @app.route('/')
