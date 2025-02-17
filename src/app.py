@@ -27,11 +27,12 @@ setup_admin(app)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
-# Generar un sitemap con todos los endpoints
+# Generar un sitemap con todos los endpoints-------------------------
 @app.route('/')
 def sitemap():
     return generate_sitemap(app)
 
+#--------*********DIVIDO POR MODELOS PARA IMPLEMENTAR ENDPOINT********
 #----------------------------personajes-------------------------------
 
 # Obtener todos los personajes
@@ -40,7 +41,8 @@ def get_all_people():
     all_people = People.query.all()
     return jsonify([person.serialize() for person in all_people]), 200
 
-# Obtener un personaje específico por ID
+# Obtener un personaje específico por ID---------------------------
+
 @app.route('/people/<int:people_id>', methods=['GET'])
 def get_person(people_id):
     person = People.query.get(people_id)
@@ -56,7 +58,8 @@ def get_all_planets():
     all_planets = Planet.query.all()
     return jsonify([planet.serialize() for planet in all_planets]), 200
 
-# Obtener un planeta específico por ID
+# Obtener un planeta específico por ID--------------------------------
+
 @app.route('/planets/<int:planet_id>', methods=['GET'])
 def get_planet(planet_id):
     planet = Planet.query.get(planet_id)
@@ -72,13 +75,36 @@ def get_all_users():
     all_users = User.query.all()
     return jsonify([user.serialize() for user in all_users]), 200
 
-# Obtener un usuario específico por ID
+# Obtener un usuario específico por ID-------------------
+
 @app.route('/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     user = User.query.get(user_id)
     if not user:
         return jsonify({"msg": "User not found"}), 404
     return jsonify(user.serialize()), 200
+
+# Crear un nuevo usuario-----------------------------------
+
+@app.route('/users', methods=['POST'])
+def create_user():
+    username = request.json.get('username')
+    email = request.json.get('email')
+    password = request.json.get('password')
+
+    if not username or not email or not password:
+        return jsonify({"msg": "Missing required fields"}), 400
+
+    new_user = User(
+        username=username,
+        email=email,
+        password=password,
+        is_active=True  # Suponiendo que el nuevo usuario es activo por defecto
+    )
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify(new_user.serialize()), 201
+
 
 # Actualizar un usuario específico por ID
 @app.route('/users/<int:user_id>', methods=['PUT'])
