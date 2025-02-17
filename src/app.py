@@ -49,6 +49,54 @@ def get_person(people_id):
     if not person:
         return jsonify({"msg": "Person not found"}), 404
     return jsonify(person.serialize()), 200
+# Crear un nuevo personaje
+@app.route('/people', methods=['POST'])
+def create_person():
+    name = request.json.get('name')
+    gender = request.json.get('gender')
+    birth_year = request.json.get('birth_year')
+    eye_color = request.json.get('eye_color')
+
+    new_person = People(
+        name=name,
+        gender=gender,
+        birth_year=birth_year,
+        eye_color=eye_color
+    )
+    db.session.add(new_person)
+    db.session.commit()
+    return jsonify(new_person.serialize()), 201
+
+# Actualizar un personaje específico por ID
+@app.route('/people/<int:people_id>', methods=['PUT'])
+def update_person(people_id):
+    person = People.query.get(people_id)
+    if not person:
+        return jsonify({"msg": "Person not found"}), 404
+
+    name = request.json.get('name')
+    gender = request.json.get('gender')
+    birth_year = request.json.get('birth_year')
+    eye_color = request.json.get('eye_color')
+
+    person.name = name if name else person.name
+    person.gender = gender if gender else person.gender
+    person.birth_year = birth_year if birth_year else person.birth_year
+    person.eye_color = eye_color if eye_color else person.eye_color
+
+    db.session.commit()
+    return jsonify(person.serialize()), 200
+
+# Eliminar un personaje específico por ID
+@app.route('/people/<int:people_id>', methods=['DELETE'])
+def delete_person(people_id):
+    person = People.query.get(people_id)
+    if not person:
+        return jsonify({"msg": "Person not found"}), 404
+    
+    db.session.delete(person)
+    db.session.commit()
+    return jsonify({"msg": "Person deleted"}), 200
 
 #----------------------------planetas-------------------------------
 
@@ -66,6 +114,55 @@ def get_planet(planet_id):
     if not planet:
         return jsonify({"msg": "Planet not found"}), 404
     return jsonify(planet.serialize()), 200
+# Crear un nuevo planeta
+@app.route('/planets', methods=['POST'])
+def create_planet():
+    name = request.json.get('name')
+    climate = request.json.get('climate')
+    terrain = request.json.get('terrain')
+    population = request.json.get('population')
+
+    new_planet = Planet(
+        name=name,
+        climate=climate,
+        terrain=terrain,
+        population=population
+    )
+    db.session.add(new_planet)
+    db.session.commit()
+    return jsonify(new_planet.serialize()), 201
+
+# Actualizar un planeta específico por ID
+@app.route('/planets/<int:planet_id>', methods=['PUT'])
+def update_planet(planet_id):
+    planet = Planet.query.get(planet_id)
+    if not planet:
+        return jsonify({"msg": "Planet not found"}), 404
+
+    name = request.json.get('name')
+    climate = request.json.get('climate')
+    terrain = request.json.get('terrain')
+    population = request.json.get('population')
+
+    planet.name = name if name else planet.name
+    planet.climate = climate if climate else planet.climate
+    planet.terrain = terrain if terrain else planet.terrain
+    planet.population = population if population else planet.population
+
+    db.session.commit()
+    return jsonify(planet.serialize()), 200
+
+# Eliminar un planeta específico por ID
+@app.route('/planets/<int:planet_id>', methods=['DELETE'])
+def delete_planet(planet_id):
+    planet = Planet.query.get(planet_id)
+    if not planet:
+        return jsonify({"msg": "Planet not found"}), 404
+
+    db.session.delete(planet)
+    db.session.commit()
+    return jsonify({"msg": "Planet deleted"}), 200
+    
 
 #----------------------------usuarios-------------------------------
 
@@ -199,7 +296,8 @@ def create_favorite():
     db.session.commit()
     return jsonify(new_favorite.serialize()), 201
 
-# Obtener los favoritos de un usuario específico
+# Obtener los favoritos de un usuario específico-------------------
+
 @app.route('/users/<int:user_id>/favorites', methods=['GET'])
 def get_user_favorites(user_id):
     user = User.query.get(user_id)
