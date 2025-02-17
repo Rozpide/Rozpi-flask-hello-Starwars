@@ -237,16 +237,16 @@ def delete_user(user_id):
 # Obtener todos los vehículos
 @app.route('/vehicles', methods=['GET'])
 def get_all_vehicles():
-    all_vehicles = Vehicle.name.query.all()
-    return jsonify([vehicle.serialize() for vehicle in all_vehicles]), 200
+    all_vehicles = Vehicle.query.all()
+    return jsonify([vehicles.serialize() for vehicles in all_vehicles]), 200
 
 # Obtener un vehículo específico por ID
 @app.route('/vehicles/<int:vehicle_id>', methods=['GET'])
 def get_vehicle(vehicle_id):
-    vehicle = Vehicle.query.get(vehicle_id)
-    if not vehicle:
+    vehicles = Vehicle.query.get(vehicle_id)
+    if not vehicles:
         return jsonify({"msg": "Vehicle not found"}), 404
-    return jsonify(vehicle.serialize()), 200
+    return jsonify(vehicles.serialize()), 200
 
 # Crear un nuevo vehículo
 @app.route('/vehicles', methods=['POST'])
@@ -280,9 +280,9 @@ def get_all_favorites():
 
 # Crear un nuevo favorito
 @app.route('/favorites', methods=['POST'])
-def create_favorite():
+def create_favorite(vehicle_id):
     user_id = request.json.get('user_id')
-    vehicle_id = request.json.get('vehicle')
+    vehicle = request.json.get('vehicle')
     people_id = request.json.get('people_id')
     planet_id = request.json.get('planet_id')
     username = request.json.get('username')
@@ -330,7 +330,7 @@ def add_favorite_people(people_id):
 # Eliminar un planeta favorito por ID
 @app.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
 def delete_favorite_planet(planet_id):
-    user_id = request.json.get('user_id')
+    user_id = request.json.get('user')
     favorite = Favorite.query.filter_by(user_id=user_id, planet_id=planet_id).first()
     if not favorite:
         return jsonify({"msg": "Favorite not found"}), 404

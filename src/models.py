@@ -92,7 +92,7 @@ class Favorite(db.Model):
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "user_name": self.user.username,
+            "user_name": self.user.username if self.user else None,
             "vehicle_id": self.vehicle_id,
             "vehicle_name": self.vehicle.name if self.vehicle else None,
             "people_id": self.people_id,
