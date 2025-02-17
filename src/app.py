@@ -1,6 +1,3 @@
-"""
-This module takes care of starting the API Server, Loading the DB and Adding the endpoints
-"""
 import os
 from flask import Flask, request, jsonify, url_for
 from flask_migrate import Migrate
@@ -9,10 +6,10 @@ from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User, People, Planet, Favorite, Vehicle
 
-
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
+# Configuración de la base de datos
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace("postgres://", "postgresql://")
@@ -25,33 +22,41 @@ db.init_app(app)
 CORS(app)
 setup_admin(app)
 
-# Handle/serialize errors like a JSON object
+# Manejar/serializar errores como un objeto JSON
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
-# generate sitemap with all your endpoints
-#----------------------------people-------------------------------
+# Generar un sitemap con todos los endpoints
+@app.route('/')
+def sitemap():
+    return generate_sitemap(app)
 
-@app.route('/people', methods=['GET'])# Aqui enviamos una solicitud GET a la ruta /people para obtener todos los personajes
+#----------------------------personajes-------------------------------
+
+# Obtener todos los personajes
+@app.route('/people', methods=['GET'])
 def get_all_people():
-    all_people = People.query.all()# Aqui estamos obteniendo todos los personajes de la base de datos
+    all_people = People.query.all()
     return jsonify([person.serialize() for person in all_people]), 200
 
-@app.route('/people/<int:people_id>', methods=['GET'])# AQui enviamos una solicitud GET a la ruta /people/<people_id> para obtener un personaje en particular a traves de su ID
+# Obtener un personaje específico por ID
+@app.route('/people/<int:people_id>', methods=['GET'])
 def get_person(people_id):
-    person = People.query.get(people_id)# Aqui estamos obteniendo un personaje en particular de la base de datos a traves de su ID
+    person = People.query.get(people_id)
     if not person:
-        return jsonify({"msg": "Person not found"}), 404 # Si el personaje no existe en la base de datos, se devuelve un mensaje de error
-    return jsonify(person.serialize()), 200 # Si el personaje existe en la base de datos, se devuelve el personaje y un codigo de estado 200
+        return jsonify({"msg": "Person not found"}), 404
+    return jsonify(person.serialize()), 200
 
-#----------------------------planets-------------------------------
+#----------------------------planetas-------------------------------
 
-@app.route('/planets', methods=['GET'])# A partir de ahora igual que con los personajes, pero con los planetas
+# Obtener todos los planetas
+@app.route('/planets', methods=['GET'])
 def get_all_planets():
     all_planets = Planet.query.all()
     return jsonify([planet.serialize() for planet in all_planets]), 200
-# A partir de ahora igual que con los personajes, pero con los planetas
+
+# Obtener un planeta específico por ID
 @app.route('/planets/<int:planet_id>', methods=['GET'])
 def get_planet(planet_id):
     planet = Planet.query.get(planet_id)
@@ -59,14 +64,15 @@ def get_planet(planet_id):
         return jsonify({"msg": "Planet not found"}), 404
     return jsonify(planet.serialize()), 200
 
-#----------------------------users-------------------------------
+#----------------------------usuarios-------------------------------
 
-# Este endpoint nos permite obtener todos los usuarios de la base de datos
+# Obtener todos los usuarios
 @app.route('/users', methods=['GET'])
 def get_all_users():
     all_users = User.query.all()
     return jsonify([user.serialize() for user in all_users]), 200
 
+# Obtener un usuario específico por ID
 @app.route('/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     user = User.query.get(user_id)
@@ -74,6 +80,7 @@ def get_user(user_id):
         return jsonify({"msg": "User not found"}), 404
     return jsonify(user.serialize()), 200
 
+# Actualizar un usuario específico por ID
 @app.route('/users/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
     user = User.query.get(user_id)
@@ -91,6 +98,7 @@ def update_user(user_id):
     db.session.commit()
     return jsonify(user.serialize()), 200
 
+# Eliminar un usuario específico por ID
 @app.route('/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     user = User.query.get(user_id)
@@ -100,13 +108,16 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
     return jsonify({"msg": "User deleted"}), 200
-#----------------------------vehicles-------------------------------
 
+#----------------------------vehículos-------------------------------
+
+# Obtener todos los vehículos
 @app.route('/vehicles', methods=['GET'])
 def get_all_vehicles():
     all_vehicles = Vehicle.query.all()
     return jsonify([vehicle.serialize() for vehicle in all_vehicles]), 200
 
+# Obtener un vehículo específico por ID
 @app.route('/vehicles/<int:vehicle_id>', methods=['GET'])
 def get_vehicle(vehicle_id):
     vehicle = Vehicle.query.get(vehicle_id)
@@ -114,6 +125,7 @@ def get_vehicle(vehicle_id):
         return jsonify({"msg": "Vehicle not found"}), 404
     return jsonify(vehicle.serialize()), 200
 
+# Crear un nuevo vehículo
 @app.route('/vehicles', methods=['POST'])
 def create_vehicle():
     name = request.json.get('name')
@@ -135,14 +147,15 @@ def create_vehicle():
     db.session.commit()
     return jsonify(new_vehicle.serialize()), 201
 
+#----------------------------favoritos-------------------------------
 
-#----------------------------favorites-------------------------------
-# Este endpoint nos permite agregar un favorito a un usuario
+# Obtener todos los favoritos
 @app.route('/favorites', methods=['GET'])
 def get_all_favorites():
     all_favorites = Favorite.query.all()
     return jsonify([favorite.serialize() for favorite in all_favorites]), 200
 
+# Crear un nuevo favorito
 @app.route('/favorites', methods=['POST'])
 def create_favorite():
     user_id = request.json.get('user_id')
@@ -160,6 +173,7 @@ def create_favorite():
     db.session.commit()
     return jsonify(new_favorite.serialize()), 201
 
+# Obtener los favoritos de un usuario específico
 @app.route('/users/<int:user_id>/favorites', methods=['GET'])
 def get_user_favorites(user_id):
     user = User.query.get(user_id)
@@ -169,11 +183,29 @@ def get_user_favorites(user_id):
     favorites = Favorite.query.filter_by(user_id=user_id).all()
     return jsonify([favorite.serialize() for favorite in favorites]), 200
 
+# Añadir un nuevo planeta favorito al usuario actual
+@app.route('/favorite/planet/<int:planet_id>', methods=['POST'])
+def add_favorite_planet(planet_id):
+    user_id = request.json.get('user_id')
+    new_favorite = Favorite(user_id=user_id, planet_id=planet_id)
+    db.session.add(new_favorite)
+    db.session.commit()
+    return jsonify(new_favorite.serialize()), 201
 
-# Este endpoint nos permite eliminar un favorito a traves de su ID
-@app.route('/favorites/<int:favorite_id>', methods=['DELETE'])
-def delete_favorite(favorite_id):
-    favorite = Favorite.query.get(favorite_id)
+# Añadir un nuevo personaje favorito al usuario actual
+@app.route('/favorite/people/<int:people_id>', methods=['POST'])
+def add_favorite_people(people_id):
+    user_id = request.json.get('user_id')
+    new_favorite = Favorite(user_id=user_id, people_id=people_id)
+    db.session.add(new_favorite)
+    db.session.commit()
+    return jsonify(new_favorite.serialize()), 201
+
+# Eliminar un planeta favorito por ID
+@app.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
+def delete_favorite_planet(planet_id):
+    user_id = request.json.get('user_id')
+    favorite = Favorite.query.filter_by(user_id=user_id, planet_id=planet_id).first()
     if not favorite:
         return jsonify({"msg": "Favorite not found"}), 404
 
@@ -181,21 +213,27 @@ def delete_favorite(favorite_id):
     db.session.commit()
     return jsonify({"msg": "Favorite deleted"}), 200
 
-#-----------------------------------------------------------
-@app.route('/')
-def sitemap():
-    return generate_sitemap(app)
+# Eliminar un personaje favorito por ID
+@app.route('/favorite/people/<int:people_id>', methods=['DELETE'])
+def delete_favorite_people(people_id):
+    user_id = request.json.get('user_id')
+    favorite = Favorite.query.filter_by(user_id=user_id, people_id=people_id).first()
+    if not favorite:
+        return jsonify({"msg": "Favorite not found"}), 404
 
+    db.session.delete(favorite)
+    db.session.commit()
+    return jsonify({"msg": "Favorite deleted"}), 200
+
+# Endpoint de ejemplo
 @app.route('/user', methods=['GET'])
 def handle_hello():
-
     response_body = {
         "msg": "Hello, this is your GET /user response "
     }
-
     return jsonify(response_body), 200
 
-# this only runs if `$ python src/app.py` is executed
+# Esto solo se ejecuta si se ejecuta `$ python src/app.py`
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=PORT, debug=False)
