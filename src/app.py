@@ -237,7 +237,7 @@ def delete_user(user_id):
 # Obtener todos los vehículos
 @app.route('/vehicles', methods=['GET'])
 def get_all_vehicles():
-    all_vehicles = Vehicle.query.all()
+    all_vehicles = Vehicle.name.query.all()
     return jsonify([vehicle.serialize() for vehicle in all_vehicles]), 200
 
 # Obtener un vehículo específico por ID
@@ -282,15 +282,17 @@ def get_all_favorites():
 @app.route('/favorites', methods=['POST'])
 def create_favorite():
     user_id = request.json.get('user_id')
-    vehicle_id = request.json.get('vehicle_id')
+    vehicle_id = request.json.get('vehicle')
     people_id = request.json.get('people_id')
     planet_id = request.json.get('planet_id')
+    username = request.json.get('username')
 
     new_favorite = Favorite(
         user_id=user_id,
         vehicle_id=vehicle_id,
         people_id=people_id,
-        planet_id=planet_id
+        planet_id=planet_id,
+        username=username
     )
     db.session.add(new_favorite)
     db.session.commit()
