@@ -55,14 +55,36 @@ class Planet(db.Model):
             "terrain": self.terrain,
             "population": self.population,
         }
+        
+class Vehicle(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True, nullable=False)
+    model = db.Column(db.String(120), nullable=False)
+    manufacturer = db.Column(db.String(120), nullable=False)
+    cost_in_credits = db.Column(db.String(120), nullable=True)
+    color = db.Column(db.String(50), nullable=True)
+    year_of_manufacture = db.Column(db.String(4), nullable=True)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "model": self.model,
+            "manufacturer": self.manufacturer,
+            "cost_in_credits": self.cost_in_credits,
+            "color": self.color,
+            "year_of_manufacture": self.year_of_manufacture,
+        }
 
 class Favorite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicle.id'), nullable=True)
     people_id = db.Column(db.Integer, db.ForeignKey('people.id'), nullable=True)
     planet_id = db.Column(db.Integer, db.ForeignKey('planet.id'), nullable=True)
 
     user = db.relationship('User', backref='favorites')
+    vehicle = db.relationship('Vehicle', backref='favorites')
     people = db.relationship('People', backref='favorites')
     planet = db.relationship('Planet', backref='favorites')
 
@@ -70,9 +92,11 @@ class Favorite(db.Model):
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "user_email": self.user.email,  # Incluir email del usuario
+            "user_name": self.user.username,
+            "vehicle_id": self.vehicle_id,
+            "vehicle_name": self.vehicle.name if self.vehicle else None,
             "people_id": self.people_id,
-            "people_name": self.people.name if self.people else None,  # Incluir nombre del personaje
+            "people_name": self.people.name if self.people else None,
             "planet_id": self.planet_id,
-            "planet_name": self.planet.name if self.planet else None,  # Incluir nombre del planeta
+            "planet_name": self.planet.name if self.planet else None,
         }
